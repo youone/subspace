@@ -1,0 +1,400 @@
+%%! Author = johan
+%%! Date = 2020-03-31
+
+% Preamble
+\documentclass[11pt]{article}
+\title{Array Subspace Methods}
+\author{Johan Lundqvist}
+\date{March 2020}
+
+% Packages
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{amssymb,amsmath}
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{0.7em}
+
+\renewcommand{\vct}[1]{\boldsymbol{#1}}
+\renewcommand{\dotprod}[2]{\vct{#1}\cdot\vct{#2}}
+
+% Document
+\begin{document}
+
+\maketitle
+
+\section{Plane Wave}
+\label{sec:plane-wave}
+Consider a plane wave in 3-dimensional space with wave number $\vct{k}(\vct{\xi})$.
+It is here parametrized by $p$ variables contained in $\vct{\xi}$ (e.g. $p=2$, azimuth and elevation, $\vct{\xi}=[\varphi, \theta]$).
+
+In a point selected as $\vct{r}=\vct{0}$ it will give a signal $s(t)\sim e^{-i\omega t+\phi}$, where $\omega=c/k$ and the phase $\phi$ will depend on the location of this origo.
+
+Assuming a stationary frequency $\omega$ the signal $x(t)$ at an arbitrary point $\vct{r}$ will be given by a spatial phase shift of the amount ${\vct{k}(\vct{\xi})}\cdot{\vct{r}}$.
+Hence
+\begin{equation}
+    x(\vct{r},t) = s(t)e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}}}
+\end{equation}
+
+\section{Antenna Array with a Single Source}
+\label{sec:antenna-array-with-a-single-source}
+~\cite{Paulraj2016SubspaceMF,GonenMendel}
+Let there be $n$ isotropically receiving antennas in the system at positions $\vct{r}_1, \vct{r}_2, \dots, \vct{r}_n$.
+In the model presented here, signals collected at these positions are
+\begin{equation}
+    \begin{split}
+        x_1(t)& = s(t)e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}_1}} + \vct{n}_1(t)\\
+        &\vdots\\
+        x_n(t)& = s(t)e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}_n}} + \vct{n}_n(t)
+    \end{split}
+\end{equation}
+
+where $\vct{n}_k(t)$ denotes additive white Gaussian noise for channel $k$.
+In matrix notation we have
+\begin{equation} \label{eq:1}
+\begin{split}
+    \begin{bmatrix}
+        x_1(t)\\
+        \vdots\\
+        x_n(t)
+    \end{bmatrix}
+    =&
+    \begin{bmatrix}
+        e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}_1}}\\
+        \vdots\\
+        e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}_n}} \\
+    \end{bmatrix}
+    s(t) +
+    \begin{bmatrix}
+        n_1(t)\\
+        \vdots\\
+        n_n(t)
+    \end{bmatrix}
+    %\end{equation}
+    %\begin{equation}
+    \\
+    \vct{x}(t) =& \vct{a}(\vct{\xi})s(t) + \vct{n}(t)\\
+\end{split}
+\end{equation}
+
+Already at this point some observations of fundamental importance can be made. The first being that the signal sampled at time $t$, $\vct{x}(t)$, will be a scalar multiple of the vector $\vct{a}(\vct{\xi})$ plus a, hopefully small, addition from the noise term $\vct{n}(t)$. The scalar factor is $s(t)$ and the vectors belong to $\mathbb C^n$. Figure \ref{fig:subspace1dim} illustrates this picture.
+
+The sub-space spanned by $\vct{a}(\vct{\xi})$ (in this case 1-dimensional) is called the \textit{column space} of the $n\times1$ matrix $\vct{a}(\vct{\xi})$, but is referred to as the \textit{signal space} in array theory. The vector $\vct{a}(\vct{\xi})$ is called the \textit{steering vector} of the array, and besides its $\vct{\xi}$-dependence (e.g. the direction of the signal source) it is only affected by the spatial array configuration in this simple example.
+
+In a hypothetical noise free system all measured signal samples will lie in the signal space. Due to noise however, the measurements will have an additional random component that lies in a sub-space orthogonal to the signal space, called the \textit{noise}- or \textit{null-space}.
+
+The set of all possible values that $\vct{a}(\vct{\xi})$ can assume is called the \textit{array manifold}. As it only depends on $\vct{\xi}$ it will constitute a $p$-dimensional surface in $\mathbb C^n$. Note that the measured signal $\vct{x}(t)$ for a specific plane wave cannot be a scalar multiple of any possible $\vct{a}(\vct{\xi})$, but only the one given by the specific parameters $\vct{\xi}$ for that wave.
+
+A straight forward procedure for estimating the correct value of $\vct{\xi}$ (we can call it $\hat{\vct{\xi}}$) is to solve the linear system \eqref{eq:1} for $s(t)$, and then scan the $\vct{\xi}$-parameter space in order to find the minimum of the difference between the measured value $x(t)$ and $\vct{a}(\vct{\xi})\hat{s}(t)$, where $\hat{s}(t)$ is the solution to \eqref{eq:1}. That is
+\begin{equation}\label{eq:2}
+\hat{\vct{\xi}}=\underset{\vct{\xi}}{\mathrm{arg\ min}}\ \|\vct{x}(t) - \vct{a}(\vct{\xi})\hat{s}(t)\|^2
+\end{equation}
+\\
+%Having found $\hat{s}(t)$, looking at figure \ref{fig:subspace1dim}, this problem looks trivial.
+Now, if $\vct{a}$ were to be an invertible $n\times n$ matrix\footnotemark the unique solution would be $\hat{s}(t)=\vct{a}^{-1}\vct{x}(t)$. In this example however $\vct{a}$ is a $1\times n$ matrix and therefor in general describes an over determined equation system. A standard way of solving such a system is to multiply by $\vct{a}^*$ and instead solving the system ($\vct{a}^*\vct{a}$ is real, square and symmetric)
+\footnotetext{This would be the case with $n$ plane waves as will be described later}
+
+\begin{figure}[t]
+    \def\svgwidth{250}
+    \input{subspace1dim.pdf_tex}
+    \centering
+    \caption{\textit{Array sub spaces}}
+    \label{fig:subspace1dim}
+\end{figure}
+
+
+\begin{equation}
+    \vct{a}^*\vct{a}s(t) = \vct{a}^*\vct{x}(t)
+\end{equation}
+\\
+Hence
+\begin{equation}
+    \hat{s}(t) = (\vct{a}^*\vct{a})^{-1}\vct{a}^*\vct{x}(t)
+\end{equation}
+
+In this case $\vct{a}$ has only one column and $\vct{a}^*\vct{a}$ is just scalar norm of $\vct{a}$ (which in fact is a real $1\times 1$ matrix) that and can be divided by. Multiplying both sides by $\vct{a}$ then gives
+
+\begin{equation}\label{eq:3}
+\\\vct{a}\hat{s}(t) = \vct{a}\frac{\vct{a}^*\vct{x}(t)}{\vct{a}^*\vct{a}}
+\end{equation}
+
+With a little effort the expression on the right is seen to be the the projection of $\vct{x}(t)$ on $\vct{a}(\vct{\xi})$.
+In fact the operator $\vct{p}_{\vct{a}}=\vct{a}(\vct{a}^*\vct{a})^{-1}\vct{a}^*$ is called a projection operator.
+Plugging ~\eqref{eq:3} into ~\eqref{eq:2} the procedure then becomes to look for values of $\vct{\xi}$ that minimizes the expression
+\begin{equation}
+    \|\vct{x}(t)-\vct{p}_{\vct{a}}(\vct{\xi})\vct{x}(t)\|^2
+\end{equation}
+That is, find the value of $\vct{\xi}$ that makes the projection of the measurement $\vct{x}(t)$ on $\vct{a}(\vct{\xi})$ lie as close as possible to $\vct{x}(t)$ itself.
+
+\subsection{Beamforming}
+
+\subsection{Statistics}
+
+\subsection{Diagonalization}
+
+\section{Multiple Sources}
+
+With $d$ plane waves parametrized by $\vct{\xi}_1 \dots\ \vct{\xi}_d$ entering the antenna field, superposition gives the measured signals
+\begin{equation}
+    \begin{split}
+        x_1(t)& = s_1(t)e^{i{\vct{k}(\vct{\xi}_1)}\cdot{\vct{r}_1}} + \dots + s_d(t)e^{i{\vct{k}(\vct{\xi}_d)}\cdot{\vct{r}_1}}\\
+        &\vdots\\
+        x_n(t)& = s_1(t)e^{i{\vct{k}(\vct{\xi}_1)}\cdot{\vct{r}_n}} + \dots + s_d(t)e^{i{\vct{k}(\vct{\xi}_d)}\cdot{\vct{r}_n}}\\
+    \end{split}
+\end{equation}
+\\and in matrix notation
+\begin{equation} \label{eq:4}
+\begin{split}
+    \begin{bmatrix}
+        x_1(t)\\
+        \vdots\\
+        x_n(t)
+    \end{bmatrix}
+    =&
+    \begin{bmatrix}
+        e^{i{\vct{k}(\vct{\xi}_1)}\cdot{\vct{r}_1}} & \dots & e^{i{\vct{k}(\vct{\xi}_d)}\cdot{\vct{r}_1}}\\
+        \vdots & \ddots & \vdots\\
+        e^{i{\vct{k}(\vct{\xi}_1)}\cdot{\vct{r}_n}} & \dots & e^{i{\vct{k}(\vct{\xi}_d)}\cdot{\vct{r}_n}}\\
+    \end{bmatrix}
+    \begin{bmatrix}
+        s_1(t)\\
+        \vdots\\
+        s_d(t)
+    \end{bmatrix}
+    \\
+    %\end{equation}
+    %\begin{equation}
+    \vct{x}(t) =& \vct{A}(\vct{\xi})\vct{s}(t)\\
+\end{split}
+\end{equation}
+
+where the notation for the full steering vector (now a $n\times d$ matrix) is changed to $\vct{A}(\vct{\xi})$ and the individual columns from now on are called $\vct{a}(\vct{\xi}_k)$.
+\begin{equation}
+    \vct{A}(\vct{\xi}) = \begin{bmatrix}\vct{a}(\vct{\xi}_1)&\dots&\vct{a}(\vct{\xi}_d)\end{bmatrix}
+\end{equation}
+
+Column wise matrix multiplication gives the measured signal vector as a linear combination of the columns of $\vct{A}(\vct{\xi})$ according to
+
+\begin{equation} \label{eq:5}
+\vct{x}(t) = s_1(t)\vct{a}(\vct{\xi}_1) + \dots + s_d(t)\vct{a}(\vct{\xi_d})
+\end{equation}
+
+And just like in the case with a single source this means that the signal is confined to a subspace of $\mathbb C^n$ spanned by the columns of $\vct{A}(\vct{\xi})$.
+
+
+%Consider the following vectors with entries in $\R$: $\mathbf
+%x=\vector{6}$, $\mathbf u=\avector{u}{7}$, $\mathbf a=\aDEFvector{8}$,
+%$\mathbf w=\aDEFvector[w]{n+1}$.
+
+%\citep{adams1995hitchhiker}
+
+%$\vct{\xi}$
+%$\vct{a}(\vct{\xi})$
+%$\vct{x}(t)$
+
+
+\bibliography{main}
+\bibliographystyle{plain}
+
+\end{document}
+
+%\documentclass{article}
+%\usepackage[utf8]{inputenc}
+%
+%\title{Array Subspace Methods}
+%\author{Johan Lundqvist}
+%\date{March 2020}
+%
+%\usepackage{graphicx}
+%\usepackage{bm}
+%\usepackage{amssymb,amsmath}
+%%\usepackage{natbib}
+%%\usepackage[sorting=none]{biblatex}
+%%\usepackage[backend=bibtex,style=numeric]{biblatex}
+%%\addbibresource{references.bib}
+%%\bibliography{references}
+%%\bibliographystyle{numeric}
+%
+%\setlength{\parindent}{0em}
+%\setlength{\parskip}{0.7em}
+%
+%\newcommand{\R}{{\mathbb R}}
+%\renewcommand{\vector}[1]{(x_1,x_2,\ldots,x_{#1})}
+%\renewcommand{\vct}[1]{\boldsymbol{#1}}
+%\renewcommand{\dotprod}[2]{\vct{#1}\cdot\vct{#2}}
+%\newcommand{\avector}[2]{(#1_1,#1_2,\ldots,#1_{#2})}
+%\newcommand{\aDEFvector}[2][a]{(#1_1,#1_2,\ldots,#1_{#2})}
+%\DeclareMathOperator*{\argminA}{arg\,min}
+%
+%\begin{document}
+%
+%    \maketitle
+%
+%    \section{Plane Wave}
+%    Consider a plane wave in 3-dimensional space with wave number $\vct{k}(\vct{\xi})$. It is here parametrized by $p$ variables contained in $\vct{\xi}$ (e.g. $p=2$, azimuth and elevation, $\vct{\xi}=[\varphi, \theta]$). In a point selected as $\vct{r}=\vct{0}$ it will give a signal $s(t)\sim e^{-i\omega t+\phi}$, where $\omega=c/k$ and the phase $\phi$ will depend on the location of this origo.
+%
+%    Assuming a stationary frequency $\omega$ the signal $x(t)$ at an arbitrary point $\vct{r}$ will be given by a spatial phase shift of the amount ${\vct{k}(\vct{\xi})}\cdot{\vct{r}}$. Hence
+%
+%    \begin{equation}
+%        x(\vct{r},t) = s(t)e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}}}
+%    \end{equation}
+%
+%    \section{Antenna Array with a Single Source}
+%    \cite{Paulraj2016SubspaceMF}
+%    \cite{}
+%    Let there be $n$ isotropically receiving antennas in the system at positions $\vct{r}_1, \vct{r}_2, ..., \vct{r}_n$. In the model presented here, signals collected at these positions are
+%    \begin{equation}
+%        \begin{split}
+%            x_1(t)& = s(t)e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}_1}} + \vct{n}_1(t)\\
+%            &\vdots\\
+%            x_n(t)& = s(t)e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}_n}} + \vct{n}_n(t)
+%        \end{split}
+%    \end{equation}
+%    where $\vct{n}_k(t)$ denotes additive white Gaussian noise for channel $k$. In matrix notation we have
+%    \begin{equation} \label{eq:1}
+%    \begin{split}
+%        \begin{bmatrix}
+%            x_1(t)\\
+%            \vdots\\
+%            x_n(t)
+%        \end{bmatrix}
+%        =&
+%        \begin{bmatrix}
+%            e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}_1}}\\
+%            \vdots\\
+%            e^{i{\vct{k}(\vct{\xi})}\cdot{\vct{r}_n}} \\
+%        \end{bmatrix}
+%        s(t) +
+%        \begin{bmatrix}
+%            n_1(t)\\
+%            \vdots\\
+%            n_n(t)
+%        \end{bmatrix}
+%        %\end{equation}
+%        %\begin{equation}
+%        \\
+%        \vct{x}(t) =& \vct{a}(\vct{\xi})s(t) + \vct{n}(t)\\
+%    \end{split}
+%    \end{equation}
+%    \\
+%
+%    Already at this point some observations of fundamental importance can be made. The first being that the signal sampled at time $t$, $\vct{x}(t)$, will be a scalar multiple of the vector $\vct{a}(\vct{\xi})$ plus a, hopefully small, addition from the noise term $\vct{n}(t)$. The scalar factor is $s(t)$ and the vectors belong to $\mathbb C^n$. Figure \ref{fig:subspace1dim} illustrates this picture.
+%
+%    The sub-space spanned by $\vct{a}(\vct{\xi})$ (in this case 1-dimensional) is called the \textit{column space} of the $n\times1$ matrix $\vct{a}(\vct{\xi})$, but is referred to as the \textit{signal space} in array theory. The vector $\vct{a}(\vct{\xi})$ is called the \textit{steering vector} of the array, and besides its $\vct{\xi}$-dependence (e.g. the direction of the signal source) it is only affected by the spatial array configuration in this simple example.
+%
+%    In a hypothetical noise free system all measured signal samples will lie in the signal space. Due to noise however, the measurements will have an additional random component that lies in a sub-space orthogonal to the signal space, called the \textit{noise}- or \textit{null-space}.
+%
+%    The set of all possible values that $\vct{a}(\vct{\xi})$ can assume is called the \textit{array manifold}. As it only depends on $\vct{\xi}$ it will constitute a $p$-dimensional surface in $\mathbb C^n$. Note that the measured signal $\vct{x}(t)$ for a specific plane wave cannot be a scalar multiple of any possible $\vct{a}(\vct{\xi})$, but only the one given by the specific parameters $\vct{\xi}$ for that wave.
+%
+%    A straight forward procedure for estimating the correct value of $\vct{\xi}$ (we can call it $\hat{\vct{\xi}}$) is to solve the linear system \eqref{eq:1} for $s(t)$, and then scan the $\vct{\xi}$-parameter space in order to find the minimum of the difference between the measured value $x(t)$ and $\vct{a}(\vct{\xi})\hat{s}(t)$, where $\hat{s}(t)$ is the solution to \eqref{eq:1}. That is
+%
+%    \begin{equation}\label{eq:2}
+%    \hat{\vct{\xi}}=\underset{\vct{\xi}}{\mathrm{arg\ min}}\ \|\vct{x}(t) - \vct{a}(\vct{\xi})\hat{s}(t)\|^2
+%    \end{equation}
+%    \\
+%    %Having found $\hat{s}(t)$, looking at figure \ref{fig:subspace1dim}, this problem looks trivial.
+%    Now, if $\vct{a}$ were to be an invertible $n\times n$ matrix\footnotemark the unique solution would be $\hat{s}(t)=\vct{a}^{-1}\vct{x}(t)$. In this example however $\vct{a}$ is a $1\times n$ matrix and therefor in general describes an over determined equation system. A standard way of solving such a system is to multiply by $\vct{a}^*$ and instead solving the system ($\vct{a}^*\vct{a}$ is real, square and symmetric)
+%
+%    \footnotetext{This would be the case with $n$ plane waves as will be described later}
+%
+%    \begin{figure}[t]
+%        \def\svgwidth{250}
+%        \input{subspace1dim.pdf_tex}
+%        \centering
+%        \caption{\textit{Array sub spaces}}
+%        \label{fig:subspace1dim}
+%    \end{figure}
+%
+%
+%    \begin{equation}
+%        \vct{a}^*\vct{a}s(t) = \vct{a}^*\vct{x}(t)
+%    \end{equation}
+%    \\
+%    Hence
+%    \begin{equation}
+%        \hat{s}(t) = (\vct{a}^*\vct{a})^{-1}\vct{a}^*\vct{x}(t)
+%    \end{equation}
+%
+%    In this case $\vct{a}$ has only one column and $\vct{a}^*\vct{a}$ is just scalar norm of $\vct{a}$ (which in fact is a real $1\times 1$ matrix) that and can be divided by. Multiplying both sides by $\vct{a}$ then gives
+%    \begin{equation}\label{eq:3}
+%    \\\vct{a}\hat{s}(t) = \vct{a}\frac{\vct{a}^*\vct{x}(t)}{\vct{a}^*\vct{a}}
+%    \end{equation}
+%    \\
+%    With a little effort the expression on the right is seen to be the the projection of $\vct{x}(t)$ on $\vct{a}(\vct{\xi})$. In fact the operator $\vct{p}_{\vct{a}}=\vct{a}(\vct{a}^*\vct{a})^{-1}\vct{a}^*$ is called a projection operator. Plugging \eqref{eq:3} into \eqref{eq:2} the procedure then becomes to look for values of $\vct{\xi}$ that minimizes the expression
+%    \\
+%    \begin{equation}
+%        \|\vct{x}(t)-\vct{p}_{\vct{a}}(\vct{\xi})\vct{x}(t)\|^2
+%    \end{equation}
+%    \\
+%    That is, find the value of $\vct{\xi}$ that makes the projection of the measurement $\vct{x}(t)$ on $\vct{a}(\vct{\xi})$ lie as close as possible to $\vct{x}(t)$ itself.
+%
+%    \subsection{Beamforming}
+%
+%    \subsection{Statistics}
+%
+%    \subsection{Diagonalization}
+%
+%    \section{Multiple Sources}
+%
+%    With $d$ plane waves parametrized by $\vct{\xi}_1 \dots\ \vct{\xi}_d$ entering the antenna field, superposition gives the measured signals
+%    \begin{equation}
+%        \begin{split}
+%            x_1(t)& = s_1(t)e^{i{\vct{k}(\vct{\xi}_1)}\cdot{\vct{r}_1}} + ... + s_d(t)e^{i{\vct{k}(\vct{\xi}_d)}\cdot{\vct{r}_1}}\\
+%            &\vdots\\
+%            x_n(t)& = s_1(t)e^{i{\vct{k}(\vct{\xi}_1)}\cdot{\vct{r}_n}} + ... + s_d(t)e^{i{\vct{k}(\vct{\xi}_d)}\cdot{\vct{r}_n}}\\
+%        \end{split}
+%    \end{equation}
+%    \\and in matrix notation
+%    \begin{equation} \label{eq:4}
+%    \begin{split}
+%        \begin{bmatrix}
+%            x_1(t)\\
+%            \vdots\\
+%            x_n(t)
+%        \end{bmatrix}
+%        =&
+%        \begin{bmatrix}
+%            e^{i{\vct{k}(\vct{\xi}_1)}\cdot{\vct{r}_1}} & \dots & e^{i{\vct{k}(\vct{\xi}_d)}\cdot{\vct{r}_1}}\\
+%            \vdots & \ddots & \vdots\\
+%            e^{i{\vct{k}(\vct{\xi}_1)}\cdot{\vct{r}_n}} & \dots & e^{i{\vct{k}(\vct{\xi}_d)}\cdot{\vct{r}_n}}\\
+%        \end{bmatrix}
+%        \begin{bmatrix}
+%            s_1(t)\\
+%            \vdots\\
+%            s_d(t)
+%        \end{bmatrix}
+%        \\
+%        %\end{equation}
+%        %\begin{equation}
+%        \vct{x}(t) =& \vct{A}(\vct{\xi})\vct{s}(t)\\
+%    \end{split}
+%    \end{equation}
+%
+%    where the notation for the full steering vector (now a $n\times d$ matrix) is changed to $\vct{A}(\vct{\xi})$ and the individual columns from now on are called $\vct{a}(\vct{\xi}_k)$.
+%    \begin{equation}
+%        \vct{A}(\vct{\xi}) = \begin{bmatrix}\vct{a}(\vct{\xi}_1)&\dots&\vct{a}(\vct{\xi}_d)\end{bmatrix}
+%    \end{equation}
+%
+%    Column wise matrix multiplication gives the measured signal vector as a linear combination of the columns of $\vct{A}(\vct{\xi})$ according to
+%
+%    \begin{equation} \label{eq:5}
+%    \vct{x}(t) = s_1(t)\vct{a}(\vct{\xi}_1) + \dots + s_d(t)\vct{a}(\vct{\xi_d})
+%    \end{equation}
+%
+%    And just like in the case with a single source this means that the signal is confined to a subspace of $\mathbb C^n$ spanned by the columns of $\vct{A}(\vct{\xi})$.
+%
+%
+%    %Consider the following vectors with entries in $\R$: $\mathbf
+%    %x=\vector{6}$, $\mathbf u=\avector{u}{7}$, $\mathbf a=\aDEFvector{8}$,
+%    %$\mathbf w=\aDEFvector[w]{n+1}$.
+%
+%    %\citep{adams1995hitchhiker}
+%
+%    %$\vct{\xi}$
+%    %$\vct{a}(\vct{\xi})$
+%    %$\vct{x}(t)$
+%
+%    \bibliography{main}
+%    \bibliographystyle{plain}
+%
+%\end{document}
